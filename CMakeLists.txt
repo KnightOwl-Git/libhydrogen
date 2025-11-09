@@ -15,7 +15,7 @@ endfunction()
 # Project files
 
 set(source_files
-    "${PROJECT_NAME}.c"
+    "libhydrogen.c"
     "impl/common.h"
     "impl/core.h"
     "impl/gimli-core.h"
@@ -31,7 +31,7 @@ set(source_files
     "impl/sign.h"
     "impl/x25519.h")
 
-set(header_files "${PROJECT_NAME}.h")
+set(header_files "libhydrogen.h")
 
 set(test_files "tests/tests.c")
 

@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "hydrogen.h"
+#include "libhydrogen.h"
 
 static const char *ctx = "libtests";
 

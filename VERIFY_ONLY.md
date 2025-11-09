@@ -4,17 +4,17 @@ This document explains how to configure libhydrogen for verification-only mode, 
 
 ## Usage
 
-Define `HYDRO_SIGN_VERIFY_ONLY` to `1` before including `hydrogen.h`:
+Define `HYDRO_SIGN_VERIFY_ONLY` to `1` before including `libhydrogen.h`:
 
 ```c
 #define HYDRO_SIGN_VERIFY_ONLY 1
-#include "hydrogen.h"
+#include "libhydrogen.h"
 ```
 
 Or compile with the flag:
 
 ```bash
-gcc -DHYDRO_SIGN_VERIFY_ONLY=1 -c hydrogen.c
+gcc -DHYDRO_SIGN_VERIFY_ONLY=1 -c libhydrogen.c
 ```
 
 ## What Gets Removed
@@ -42,7 +42,7 @@ Since verification only needs hash and X25519 operations, the following modules 
 - **PWHASH (Password Hashing)** - Not needed
 - **Hash keygen** - Not needed (verification uses NULL keys)
 
-You can still explicitly enable any of these modules if needed by defining their disable flags to 0 before including `hydrogen.h`.
+You can still explicitly enable any of these modules if needed by defining their disable flags to 0 before including `libhydrogen.h`.
 
 ## What Remains Available
 
@@ -60,7 +60,7 @@ When `HYDRO_SIGN_VERIFY_ONLY` is enabled, unused modules are automatically disab
 ```c
 #define HYDRO_SIGN_VERIFY_ONLY 1
 #define HYDRO_DISABLE_RANDOM 0      // Keep random enabled (overrides auto-disable)
-#include "hydrogen.h"
+#include "libhydrogen.h"
 ```
 
 ## Manual Feature Flags
@@ -73,14 +73,14 @@ You can also manually disable modules without enabling verify-only mode:
 #define HYDRO_DISABLE_KDF 1          // Disable key derivation
 #define HYDRO_DISABLE_PWHASH 1       // Disable password hashing
 #define HYDRO_DISABLE_RANDOM 1       // Disable random (only if all features using it are disabled)
-#include "hydrogen.h"
+#include "libhydrogen.h"
 ```
 
 ## Example
 
 ```c
 #define HYDRO_SIGN_VERIFY_ONLY 1
-#include "hydrogen.h"
+#include "libhydrogen.h"
 #include <stdio.h>
 
 int main(void) {

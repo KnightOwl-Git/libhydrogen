@@ -11,11 +11,11 @@ pub fn build(b: *std.Build) void {
         .link_libc = true,
     });
     _ = b.addModule("libhydrogen", .{
-        .root_source_file = b.path("hydrogen.c"),
+        .root_source_file = b.path("libhydrogen.c"),
         .link_libc = true,
     });
     lib.addCSourceFile(.{
-        .file = b.path("hydrogen.c"),
+        .file = b.path("libhydrogen.c"),
     });
     b.installArtifact(lib);
 }

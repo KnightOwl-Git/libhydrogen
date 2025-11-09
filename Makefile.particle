@@ -1,7 +1,7 @@
 PARTICLE_PACKAGE ?= hydrogen-crypto.zip
 SRC = \
-	hydrogen.c \
-	hydrogen.h \
+	libhydrogen.c \
+	libhydrogen.h \
 	impl/common.h \
 	impl/core.h \
 	impl/gimli-core.h \
@@ -27,8 +27,8 @@ $(PARTICLE_PACKAGE):
 	cp README.md particle/.
 	cp LICENSE particle/.
 	cp -r impl particle/src/.
-	cp hydrogen.h particle/src/.
-	cp hydrogen.c particle/src/hydrogen.cpp
+	cp libhydrogen.h particle/src/.
+	cp libhydrogen.c particle/src/libhydrogen.cpp
 	7z a -tzip -mx=9 -r $(PARTICLE_PACKAGE) particle/.
 	rm -rf particle
 

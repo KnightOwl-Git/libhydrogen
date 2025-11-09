@@ -34,7 +34,7 @@ add_project_arguments(cflags, language: 'c')
 include_dirs = include_directories('.')
 
 sources = files(
-  'hydrogen.c',
+  'libhydrogen.c',
 )
 
 libhydrogen = library(
@@ -51,7 +51,7 @@ tests = executable(
 )
 test('tests', tests)
 
-install_headers(files('hydrogen.h'))
+install_headers(files('libhydrogen.h'))
 
 pkgconfig = import('pkgconfig')
 pkgconfig.generate(
