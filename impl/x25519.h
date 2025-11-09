@@ -334,6 +334,7 @@ hydro_x25519_scalarmult_base(uint8_t       pk[hydro_x25519_PUBLICKEYBYTES],
     return hydro_x25519_scalarmult(pk, sk, hydro_x25519_BASE_POINT, 1);
 }
 
+#if !HYDRO_SIGN_VERIFY_ONLY || !HYDRO_DISABLE_KX
 static inline void
 hydro_x25519_scalarmult_base_uniform(uint8_t       pk[hydro_x25519_PUBLICKEYBYTES],
                                      const uint8_t sk[hydro_x25519_SECRETKEYBYTES])
@@ -342,7 +343,9 @@ hydro_x25519_scalarmult_base_uniform(uint8_t       pk[hydro_x25519_PUBLICKEYBYTE
         abort();
     }
 }
+#endif
 
+#if !HYDRO_SIGN_VERIFY_ONLY
 static void
 hydro_x25519_sc_montmul(hydro_x25519_scalar_t out, const hydro_x25519_scalar_t a,
                         const hydro_x25519_scalar_t b)
@@ -384,3 +387,4 @@ hydro_x25519_sc_montmul(hydro_x25519_scalar_t out, const hydro_x25519_scalar_t a
         out[i] = hydro_x25519_umaal(&carry, out[i], need_add, hydro_x25519_sc_p[i]);
     }
 }
+#endif

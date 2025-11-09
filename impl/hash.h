@@ -135,8 +135,10 @@ hydro_hash_hash(uint8_t *out, size_t out_len, const void *in_, size_t in_len,
     return 0;
 }
 
+#if !HYDRO_DISABLE_RANDOM
 void
 hydro_hash_keygen(uint8_t key[hydro_hash_KEYBYTES])
 {
     hydro_random_buf(key, hydro_hash_KEYBYTES);
 }
+#endif

@@ -74,6 +74,7 @@ static int hydro_x25519_scalarmult(uint8_t       out[hydro_x25519_BYTES],
                                    const uint8_t x1[hydro_x25519_PUBLICKEYBYTES],
                                    bool          clamp) _hydro_attr_warn_unused_result_;
 
+#if !HYDRO_SIGN_VERIFY_ONLY || !HYDRO_DISABLE_KX
 static inline int hydro_x25519_scalarmult_base(uint8_t       pk[hydro_x25519_PUBLICKEYBYTES],
                                                const uint8_t sk[hydro_x25519_SECRETKEYBYTES])
     _hydro_attr_warn_unused_result_;
@@ -81,3 +82,4 @@ static inline int hydro_x25519_scalarmult_base(uint8_t       pk[hydro_x25519_PUB
 static inline void
 hydro_x25519_scalarmult_base_uniform(uint8_t       pk[hydro_x25519_PUBLICKEYBYTES],
                                      const uint8_t sk[hydro_x25519_SECRETKEYBYTES]);
+#endif

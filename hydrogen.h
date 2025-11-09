@@ -41,11 +41,64 @@ extern "C" {
 #define HYDRO_VERSION_MAJOR 1
 #define HYDRO_VERSION_MINOR 0
 
+/* Feature configuration flags
+ * Define these before including hydrogen.h to disable features
+ * and reduce code size.
+ *
+ * Example: #define HYDRO_SIGN_VERIFY_ONLY 1
+ */
+#ifndef HYDRO_SIGN_VERIFY_ONLY
+#    define HYDRO_SIGN_VERIFY_ONLY 0
+#endif
+
+#ifndef HYDRO_DISABLE_KX
+#    define HYDRO_DISABLE_KX 0
+#endif
+
+#ifndef HYDRO_DISABLE_SECRETBOX
+#    define HYDRO_DISABLE_SECRETBOX 0
+#endif
+
+#ifndef HYDRO_DISABLE_KDF
+#    define HYDRO_DISABLE_KDF 0
+#endif
+
+#ifndef HYDRO_DISABLE_PWHASH
+#    define HYDRO_DISABLE_PWHASH 0
+#endif
+
+#ifndef HYDRO_DISABLE_RANDOM
+#    define HYDRO_DISABLE_RANDOM 0
+#endif
+
+/* Automatically disable unused modules when verify-only mode is enabled.
+ * Verification only needs hash and X25519 operations, not random, KDF,
+ * secretbox, KX, or pwhash.
+ */
+#if HYDRO_SIGN_VERIFY_ONLY
+#    ifndef HYDRO_DISABLE_RANDOM
+#        define HYDRO_DISABLE_RANDOM 1
+#    endif
+#    ifndef HYDRO_DISABLE_KDF
+#        define HYDRO_DISABLE_KDF 1
+#    endif
+#    ifndef HYDRO_DISABLE_SECRETBOX
+#        define HYDRO_DISABLE_SECRETBOX 1
+#    endif
+#    ifndef HYDRO_DISABLE_KX
+#        define HYDRO_DISABLE_KX 1
+#    endif
+#    ifndef HYDRO_DISABLE_PWHASH
+#        define HYDRO_DISABLE_PWHASH 1
+#    endif
+#endif
+
 int hydro_init(void);
 
 /* ---------------- */
 
-#define hydro_random_SEEDBYTES 32
+#if !HYDRO_DISABLE_RANDOM
+#    define hydro_random_SEEDBYTES 32
 
 uint32_t hydro_random_u32(void);
 
@@ -59,6 +112,7 @@ void hydro_random_buf_deterministic(void *out, size_t out_len,
 void hydro_random_ratchet(void);
 
 void hydro_random_reseed(void);
+#endif
 
 /* ---------------- */
 
@@ -87,12 +141,17 @@ int hydro_hash_hash(uint8_t *out, size_t out_len, const void *in_, size_t in_len
                     const char    ctx[hydro_hash_CONTEXTBYTES],
                     const uint8_t key[hydro_hash_KEYBYTES]);
 
+#if !HYDRO_DISABLE_RANDOM
+void hydro_hash_keygen(uint8_t key[hydro_hash_KEYBYTES]);
+#endif
+
 /* ---------------- */
 
-#define hydro_secretbox_CONTEXTBYTES 8
-#define hydro_secretbox_HEADERBYTES  (20 + 16)
-#define hydro_secretbox_KEYBYTES     32
-#define hydro_secretbox_PROBEBYTES   16
+#if !HYDRO_DISABLE_SECRETBOX
+#    define hydro_secretbox_CONTEXTBYTES 8
+#    define hydro_secretbox_HEADERBYTES  (20 + 16)
+#    define hydro_secretbox_KEYBYTES     32
+#    define hydro_secretbox_PROBEBYTES   16
 
 void hydro_secretbox_keygen(uint8_t key[hydro_secretbox_KEYBYTES]);
 
@@ -113,19 +172,22 @@ int hydro_secretbox_probe_verify(const uint8_t probe[hydro_secretbox_PROBEBYTES]
                                  size_t c_len, const char ctx[hydro_secretbox_CONTEXTBYTES],
                                  const uint8_t key[hydro_secretbox_KEYBYTES])
     _hydro_attr_warn_unused_result_;
+#endif
 
 /* ---------------- */
 
-#define hydro_kdf_CONTEXTBYTES 8
-#define hydro_kdf_KEYBYTES     32
-#define hydro_kdf_BYTES_MAX    65535
-#define hydro_kdf_BYTES_MIN    16
+#if !HYDRO_DISABLE_KDF
+#    define hydro_kdf_CONTEXTBYTES 8
+#    define hydro_kdf_KEYBYTES     32
+#    define hydro_kdf_BYTES_MAX    65535
+#    define hydro_kdf_BYTES_MIN    16
 
 void hydro_kdf_keygen(uint8_t key[hydro_kdf_KEYBYTES]);
 
 int hydro_kdf_derive_from_key(uint8_t *subkey, size_t subkey_len, uint64_t subkey_id,
                               const char    ctx[hydro_kdf_CONTEXTBYTES],
                               const uint8_t key[hydro_kdf_KEYBYTES]);
+#endif
 
 /* ---------------- */
 
@@ -144,25 +206,31 @@ typedef struct hydro_sign_keypair {
     uint8_t sk[hydro_sign_SECRETKEYBYTES];
 } hydro_sign_keypair;
 
+#if !HYDRO_SIGN_VERIFY_ONLY
 void hydro_sign_keygen(hydro_sign_keypair *kp);
 
 void hydro_sign_keygen_deterministic(hydro_sign_keypair *kp,
                                      const uint8_t       seed[hydro_sign_SEEDBYTES]);
+#endif
 
 int hydro_sign_init(hydro_sign_state *state, const char ctx[hydro_sign_CONTEXTBYTES]);
 
 int hydro_sign_update(hydro_sign_state *state, const void *m_, size_t mlen);
 
+#if !HYDRO_SIGN_VERIFY_ONLY
 int hydro_sign_final_create(hydro_sign_state *state, uint8_t csig[hydro_sign_BYTES],
                             const uint8_t sk[hydro_sign_SECRETKEYBYTES]);
+#endif
 
 int hydro_sign_final_verify(hydro_sign_state *state, const uint8_t csig[hydro_sign_BYTES],
                             const uint8_t pk[hydro_sign_PUBLICKEYBYTES])
     _hydro_attr_warn_unused_result_;
 
+#if !HYDRO_SIGN_VERIFY_ONLY
 int hydro_sign_create(uint8_t csig[hydro_sign_BYTES], const void *m_, size_t mlen,
                       const char    ctx[hydro_sign_CONTEXTBYTES],
                       const uint8_t sk[hydro_sign_SECRETKEYBYTES]);
+#endif
 
 int hydro_sign_verify(const uint8_t csig[hydro_sign_BYTES], const void *m_, size_t mlen,
                       const char    ctx[hydro_sign_CONTEXTBYTES],
@@ -170,11 +238,12 @@ int hydro_sign_verify(const uint8_t csig[hydro_sign_BYTES], const void *m_, size
 
 /* ---------------- */
 
-#define hydro_kx_SESSIONKEYBYTES 32
-#define hydro_kx_PUBLICKEYBYTES  32
-#define hydro_kx_SECRETKEYBYTES  32
-#define hydro_kx_PSKBYTES        32
-#define hydro_kx_SEEDBYTES       32
+#if !HYDRO_DISABLE_KX
+#    define hydro_kx_SESSIONKEYBYTES 32
+#    define hydro_kx_PUBLICKEYBYTES  32
+#    define hydro_kx_SECRETKEYBYTES  32
+#    define hydro_kx_PSKBYTES        32
+#    define hydro_kx_SEEDBYTES       32
 
 typedef struct hydro_kx_keypair {
     uint8_t pk[hydro_kx_PUBLICKEYBYTES];
@@ -198,7 +267,7 @@ void hydro_kx_keygen_deterministic(hydro_kx_keypair *static_kp,
 
 /* NOISE_N */
 
-#define hydro_kx_N_PACKET1BYTES (32 + 16)
+#    define hydro_kx_N_PACKET1BYTES (32 + 16)
 
 int hydro_kx_n_1(hydro_kx_session_keypair *kp, uint8_t packet1[hydro_kx_N_PACKET1BYTES],
                  const uint8_t psk[hydro_kx_PSKBYTES],
@@ -209,8 +278,8 @@ int hydro_kx_n_2(hydro_kx_session_keypair *kp, const uint8_t packet1[hydro_kx_N_
 
 /* NOISE_KK */
 
-#define hydro_kx_KK_PACKET1BYTES (32 + 16)
-#define hydro_kx_KK_PACKET2BYTES (32 + 16)
+#    define hydro_kx_KK_PACKET1BYTES (32 + 16)
+#    define hydro_kx_KK_PACKET2BYTES (32 + 16)
 
 int hydro_kx_kk_1(hydro_kx_state *state, uint8_t packet1[hydro_kx_KK_PACKET1BYTES],
                   const uint8_t           peer_static_pk[hydro_kx_PUBLICKEYBYTES],
@@ -227,9 +296,9 @@ int hydro_kx_kk_3(hydro_kx_state *state, hydro_kx_session_keypair *kp,
 
 /* NOISE_XX */
 
-#define hydro_kx_XX_PACKET1BYTES (32 + 16)
-#define hydro_kx_XX_PACKET2BYTES (32 + 32 + 16 + 16)
-#define hydro_kx_XX_PACKET3BYTES (32 + 16 + 16)
+#    define hydro_kx_XX_PACKET1BYTES (32 + 16)
+#    define hydro_kx_XX_PACKET2BYTES (32 + 32 + 16 + 16)
+#    define hydro_kx_XX_PACKET3BYTES (32 + 16 + 16)
 
 int hydro_kx_xx_1(hydro_kx_state *state, uint8_t packet1[hydro_kx_XX_PACKET1BYTES],
                   const uint8_t psk[hydro_kx_PSKBYTES]);
@@ -251,8 +320,8 @@ int hydro_kx_xx_4(hydro_kx_state *state, hydro_kx_session_keypair *kp,
 
 /* NOISE_NK */
 
-#define hydro_kx_NK_PACKET1BYTES (32 + 16)
-#define hydro_kx_NK_PACKET2BYTES (32 + 16)
+#    define hydro_kx_NK_PACKET1BYTES (32 + 16)
+#    define hydro_kx_NK_PACKET2BYTES (32 + 16)
 
 int hydro_kx_nk_1(hydro_kx_state *state, uint8_t packet1[hydro_kx_NK_PACKET1BYTES],
                   const uint8_t psk[hydro_kx_PSKBYTES],
@@ -264,12 +333,14 @@ int hydro_kx_nk_2(hydro_kx_session_keypair *kp, uint8_t packet2[hydro_kx_NK_PACK
 
 int hydro_kx_nk_3(hydro_kx_state *state, hydro_kx_session_keypair *kp,
                   const uint8_t packet2[hydro_kx_NK_PACKET2BYTES]);
+#endif
 
 /* ---------------- */
 
-#define hydro_pwhash_CONTEXTBYTES   8
-#define hydro_pwhash_MASTERKEYBYTES 32
-#define hydro_pwhash_STOREDBYTES    128
+#if !HYDRO_DISABLE_PWHASH
+#    define hydro_pwhash_CONTEXTBYTES   8
+#    define hydro_pwhash_MASTERKEYBYTES 32
+#    define hydro_pwhash_STOREDBYTES    128
 
 void hydro_pwhash_keygen(uint8_t master_key[hydro_pwhash_MASTERKEYBYTES]);
 
@@ -300,6 +371,7 @@ int hydro_pwhash_reencrypt(uint8_t       stored[hydro_pwhash_STOREDBYTES],
 int hydro_pwhash_upgrade(uint8_t       stored[hydro_pwhash_STOREDBYTES],
                          const uint8_t master_key[hydro_pwhash_MASTERKEYBYTES], uint64_t opslimit,
                          size_t memlimit, uint8_t threads);
+#endif
 
 /* ---------------- */
 
